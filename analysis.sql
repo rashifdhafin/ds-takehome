@@ -23,16 +23,22 @@ SELECT COUNT(DISTINCT order_id) AS UNIQUE_ORDER_ID FROM E_COMMERCE_TRANSACTIONS;
 -- Query 5: Check how many unique customer_id in E_COMMERCE_TRANSACTIONS table
 SELECT COUNT(DISTINCT customer_id) AS UNIQUE_CUSTOMER_ID FROM E_COMMERCE_TRANSACTIONS;
 
--- Query 6: Check minimum and maximum payment_value in E_COMMERCE_TRANSACTIONS table
+-- Query 6: Check minimum and maximum order_date in E_COMMERCE_TRANSACTIONS table
+SELECT 
+    MIN(order_date) AS MIN_ORDER_DATE, 
+    MAX(order_date) AS MAX_ORDER_DATE
+FROM E_COMMERCE_TRANSACTIONS;
+
+-- Query 7: Check minimum and maximum payment_value in E_COMMERCE_TRANSACTIONS table
 SELECT 
     MIN(payment_value) AS MIN_PAYMENT_VALUE, 
     MAX(payment_value) AS MAX_PAYMENT_VALUE
 FROM E_COMMERCE_TRANSACTIONS;
 
--- Query 7: Check unique value from decoy_flag column in E_COMMERCE_TRANSACTIONS table
+-- Query 8: Check unique value from decoy_flag column in E_COMMERCE_TRANSACTIONS table
 SELECT DISTINCT decoy_flag FROM E_COMMERCE_TRANSACTIONS;
 
--- Query 8: Check minimum and maximum decoy_noise in E_COMMERCE_TRANSACTIONS table
+-- Query 9: Check minimum and maximum decoy_noise in E_COMMERCE_TRANSACTIONS table
 SELECT 
     MIN(decoy_noise) AS MIN_DECOY_NOISE, 
     MAX(decoy_noise) AS MAX_DECOY_NOISE
