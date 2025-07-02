@@ -82,3 +82,60 @@ GROUP BY
     Customer_Segment
 ORDER BY
     Number_Of_Customers DESC;
+
+-- Query 11: Create query to create reports of monthly repeat purchase by customer
+-- MonthlyOrders CTE: Extracts list of orders with their respective months
+-- CustomerMonthlyOrderCounts CTE: Counts distinct orders per customer per month
+-- MonthlyRepeatCustomers CTE: Counts unique customers with multiple orders in each month
+-- TotalUniqueCustomersMonthly CTE: Counts total unique customers per month
+-- Final SELECT: Combines the above CTEs to calculate the percentage of repeat purchases per month
+WITH MonthlyOrders AS (
+    SELECT
+        customer_id,
+        order_id,
+        STRFTIME(order_date, '%Y-%m') AS order_month
+    FROM
+        E_COMMERCE_TRANSACTIONS
+),
+CustomerMonthlyOrderCounts AS (
+    SELECT
+        customer_id,
+        order_month,
+        COUNT(DISTINCT order_id) AS orders_in_month
+    FROM
+        MonthlyOrders
+    GROUP BY
+        customer_id,
+        order_month
+),
+MonthlyRepeatCustomers AS (
+    SELECT
+        order_month,
+        COUNT(customer_id) AS unique_repeat_customers_in_month
+    FROM
+        CustomerMonthlyOrderCounts
+    WHERE
+        orders_in_month > 1
+    GROUP BY
+        order_month
+),
+TotalUniqueCustomersMonthly AS (
+    SELECT
+        STRFTIME(order_date, '%Y-%m') AS order_month,
+        COUNT(DISTINCT customer_id) AS total_unique_customers
+    FROM
+        E_COMMERCE_TRANSACTIONS
+    GROUP BY
+        order_month
+)
+SELECT
+    tm.order_month,
+    tm.total_unique_customers,
+    COALESCE(mrc.unique_repeat_customers_in_month, 0) AS customers_with_multiple_orders_in_month,
+    ROUND(COALESCE(mrc.unique_repeat_customers_in_month, 0) * 100.0 / tm.total_unique_customers, 2) AS percentage_repeat_purchase_in_month
+FROM
+    TotalUniqueCustomersMonthly AS tm
+LEFT JOIN
+    MonthlyRepeatCustomers AS mrc ON tm.order_month = mrc.order_month
+ORDER BY
+    tm.order_month;
