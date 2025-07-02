@@ -43,3 +43,42 @@ SELECT
     MIN(decoy_noise) AS MIN_DECOY_NOISE, 
     MAX(decoy_noise) AS MAX_DECOY_NOISE
 FROM E_COMMERCE_TRANSACTIONS;
+
+-- Query 10: Create RFM scores and customer segments distribution
+WITH CustomerRFM AS (
+    SELECT
+        customer_id,
+        DATE_DIFF('day', MAX(order_date), (SELECT MAX(order_date) FROM E_COMMERCE_TRANSACTIONS)) AS recency,
+        COUNT(DISTINCT order_id) AS frequency,
+        SUM(payment_value) AS monetary
+    FROM
+        E_COMMERCE_TRANSACTIONS
+    GROUP BY
+        customer_id
+),
+RFMScores AS (
+    SELECT
+        customer_id,
+        NTILE(5) OVER (ORDER BY recency) AS r_score,
+        NTILE(5) OVER (ORDER BY frequency DESC) AS f_score,
+        NTILE(5) OVER (ORDER BY monetary DESC) AS m_score
+    FROM
+        CustomerRFM
+)
+SELECT
+    CASE
+        WHEN r_score = 5 AND f_score = 5 AND m_score = 5 THEN 'Champions'
+        WHEN r_score = 5 AND f_score = 4 AND m_score IN (3,4) THEN 'Big Spenders'
+        WHEN r_score IN (3,4,5) AND f_score IN (4,5) AND m_score IN (1,2,3) THEN 'Frequent Buyers'
+        WHEN r_score IN (1,2) AND f_score IN (1,2,3) AND m_score IN (1,2,3) THEN 'Lost'
+        WHEN r_score IN (2,3) AND f_score IN (2,3) AND m_score IN (2,3) THEN 'Average Customers'
+        WHEN r_score = 1 AND f_score = 1 AND m_score = 5 THEN 'Big Wallet, Inactive'
+        ELSE 'Other'
+    END AS Customer_Segment,
+    COUNT(*) AS Number_Of_Customers
+FROM
+    RFMScores
+GROUP BY
+    Customer_Segment
+ORDER BY
+    Number_Of_Customers DESC;
